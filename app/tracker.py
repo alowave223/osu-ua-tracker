@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from zoneinfo import ZoneInfo
+
 __all__ = ("Tracker",)
 
 from app.version import Version
@@ -135,7 +137,7 @@ class Tracker(commands.Bot):
                 embed.set_thumbnail(url=score.beatmapset.covers.list)
 
                 embed.set_footer(
-                    text=f"Мапа {score_bmap_creator.username}, зіграно {score.created_at.strftime('%d.%m.%Y o %H:%M')}",
+                    text=f"Мапа {score_bmap_creator.username}, зіграно {score.created_at.replace(tzinfo=ZoneInfo('Europe/Kyiv')).strftime('%d.%m.%Y o %H:%M')}",
                     icon_url=score_bmap_creator.avatar_url,
                 )
                 await announce_channel.send(embeds=[embed])
