@@ -3,9 +3,9 @@
 import os
 
 import discord
+from app.settings import Settings
 
-from tracker import Tracker
-from dotenv import dotenv_values
+from app.tracker import Tracker
 
 __all__ = ()
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     intents.message_content = True
     intents.messages = True
 
-    config = dotenv_values(".env")
+    config = Settings()
     client = Tracker(config, intents=intents).run(
-        token=config["BOT_TOKEN"]
+        token=config.BOT_TOKEN.get_secret_value()
     )
