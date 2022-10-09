@@ -13,13 +13,15 @@ import discord
 from ossapi import OssapiV2
 from cmyui import Version
 from discord.ext import commands, tasks
+from app.settings import Settings
 
-from utils import rank_to_str, update_tracklist
+from app.usecases.updater import update_tracklist
+from app.utils import rank_to_str
 
 class Tracker(commands.Bot):
     __slots__ = ("config", "loop", "update_loop", "pool", "version", "uptime", "api")
 
-    def __init__(self, config: dict[str, Optional[str]], **kwargs) -> None:
+    def __init__(self, config: Settings, **kwargs) -> None:
         super().__init__(
             command_prefix=self.when_mentioned_or_prefix(),
             help_command=None,
@@ -28,7 +30,7 @@ class Tracker(commands.Bot):
 
         self.config = config
         self.pool = ThreadPoolExecutor(max_workers=2)
-        self.api = OssapiV2(self.config["OSU_API_CLIENT_ID"], self.config["OSU_API_CLIENT_SECRET"])
+        self.api = OssapiV2(self.config.OSU_API_CLIENT_ID, self.config.OSU_API_CLIENT_SECRET.get_secret_value())
         self.version = Version(1, 2, 0)
         self.uptime: Optional[int] = None
         self.jezus = False
@@ -59,7 +61,7 @@ class Tracker(commands.Bot):
         self.loop.create_task(self.start_update())
 
     async def start_update(self) -> None:
-        announce_channel = self.get_channel(self.config["ANNOUNCE_CHANNEL_ID"])
+        announce_channel = self.get_channel(self.config.ANNOUNCE_CHANNEL_ID)
         new_players, new_scores, banned_players = await self.loop.run_in_executor(
             self.pool, update_tracklist, self.api
         )
