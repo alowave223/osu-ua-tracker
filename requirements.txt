@@ -1,5 +1,5 @@
 cmyui==1.9.3
 discord.py==2.0.1
-ossapi==2.3.0
-pydantic==1.9.0
+ossapi==2.4.1
+pydantic==1.10.2
 ratelimiter==1.2.0.post0
