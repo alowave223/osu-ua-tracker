@@ -40,6 +40,8 @@ class Tracker(commands.Bot):
         self.uptime: Optional[int] = None
         self.jezus = False
 
+        log("Initializing discord.", Ansi.RED)
+
     def when_mentioned_or_prefix(self):
         def inner(bot, msg):
             prefix = "$"
@@ -54,11 +56,12 @@ class Tracker(commands.Bot):
         # to prevent repetitive initialization, I made this peace of shit.
         # TODO: Make updater not block the loop
         if not self.jezus:
-            log("Updater has been started.", Ansi.MAGENTA)
+            log("Discord Initialized!", Ansi.GREEN)
             self.jezus = True
 
             self.loop = asyncio.get_event_loop()
             self.task_1.start()
+            log("Updater has been started.", Ansi.MAGENTA)
 
     @tasks.loop(seconds=600)
     async def task_1(self) -> None:

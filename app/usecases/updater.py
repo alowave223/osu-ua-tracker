@@ -68,32 +68,33 @@ def update_tracklist(
                 },
             )
 
-            if place.user.username not in track_file:
-                old_player = find(
-                    lambda x: x["statistics"]["crank"] == country_rank,
-                    track_file,
-                )
+            if track_file:
+                if place.user.id not in [x["id"] for x in track_file]:
+                    old_player = find(
+                        lambda x: x["statistics"]["crank"] == country_rank,
+                        track_file,
+                    )
 
-                new_players.append(
-                    (
-                        api.user(place.user.id, GameMode.STD),
-                        api.user(old_player["id"], GameMode.STD),
-                    ),
-                )
-            else:
-                old = find(lambda x: x["id"] == place.user.id, track_file)[
-                    "statistics"
-                ]["scores"]
-                new = find(lambda x: x["id"] == place.user.id, new_stats)["statistics"][
-                    "scores"
-                ]
+                    new_players.append(
+                        (
+                            api.user(place.user.id, GameMode.STD),
+                            api.user(old_player["id"], GameMode.STD),
+                        ),
+                    )
+                else:
+                    old = find(lambda x: x["id"] == place.user.id, track_file)[
+                        "statistics"
+                    ]["scores"]
+                    new = find(lambda x: x["id"] == place.user.id, new_stats)[
+                        "statistics"
+                    ]["scores"]
 
-                if dif_scores := list(set(new) ^ set(old)):
-                    for score in dif_scores:
-                        exact_score = find(lambda x: x.id == score, scores)
+                    if dif_scores := list(set(new) ^ set(old)):
+                        for score in dif_scores:
+                            exact_score = find(lambda x: x.id == score, scores)
 
-                        if exact_score:
-                            new_scores.append(exact_score)
+                            if exact_score:
+                                new_scores.append(exact_score)
 
     if diff_users := list(
         {x["id"] for x in track_file} - {x["id"] for x in new_stats},
