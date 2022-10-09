@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
 __all__ = ("Tracker",)
 
@@ -13,10 +13,12 @@ import discord
 from ossapi import OssapiV2
 from cmyui import Version
 from discord.ext import commands, tasks
+from app.logging import Ansi, log
 from app.settings import Settings
 
 from app.usecases.updater import update_tracklist
 from app.utils import rank_to_str
+
 
 class Tracker(commands.Bot):
     __slots__ = ("config", "loop", "update_loop", "pool", "version", "uptime", "api")
@@ -30,7 +32,10 @@ class Tracker(commands.Bot):
 
         self.config = config
         self.pool = ThreadPoolExecutor(max_workers=2)
-        self.api = OssapiV2(self.config.OSU_API_CLIENT_ID, self.config.OSU_API_CLIENT_SECRET.get_secret_value())
+        self.api = OssapiV2(
+            self.config.OSU_API_CLIENT_ID,
+            self.config.OSU_API_CLIENT_SECRET.get_secret_value(),
+        )
         self.version = Version(1, 2, 0)
         self.uptime: Optional[int] = None
         self.jezus = False
@@ -49,6 +54,7 @@ class Tracker(commands.Bot):
         # to prevent repetitive initialization, I made this peace of shit.
         # TODO: Make updater not block the loop
         if not self.jezus:
+            log("Updater has been started.", Ansi.MAGENTA)
             self.jezus = True
 
             self.loop = asyncio.get_event_loop()
@@ -63,7 +69,9 @@ class Tracker(commands.Bot):
     async def start_update(self) -> None:
         announce_channel = self.get_channel(self.config.ANNOUNCE_CHANNEL_ID)
         new_players, new_scores, banned_players = await self.loop.run_in_executor(
-            self.pool, update_tracklist, self.api
+            self.pool,
+            update_tracklist,
+            self.api,
         )
 
         if new_players:
@@ -81,10 +89,12 @@ class Tracker(commands.Bot):
 
                 embed.add_field(name="PP", value=f"{new_player.statistics.pp}pp")
                 embed.add_field(
-                    name="Acc", value=f"{new_player.statistics.hit_accuracy:.2f}%"
+                    name="Acc",
+                    value=f"{new_player.statistics.hit_accuracy:.2f}%",
                 )
                 embed.add_field(
-                    name="Playcount", value=f"{new_player.statistics.play_count}"
+                    name="Playcount",
+                    value=f"{new_player.statistics.play_count}",
                 )
 
                 embed.set_footer(text="Це є мотивація")

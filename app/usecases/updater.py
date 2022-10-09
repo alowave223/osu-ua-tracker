@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import time
 from pathlib import Path
@@ -14,6 +16,10 @@ from ossapi.models import Score
 from ossapi.models import User
 from ratelimiter import RateLimiter
 
+from app.logging import Ansi
+from app.logging import log
+
+
 @RateLimiter(max_calls=250, period=60)
 def get_ranks(api: OssapiV2, page: int) -> Rankings:
     return api.ranking(GameMode.STD, RankingType.PERFORMANCE, "ua", Cursor(page=page))
@@ -29,7 +35,7 @@ def get_scores(api: OssapiV2, id: int) -> list[Score]:
 def update_tracklist(
     api: OssapiV2,
 ) -> tuple[list[tuple[User, User]], list[Score], list[Union[User, int]]]:
-    print("Started update")
+    log("Started update", Ansi.BLUE)
 
     start = time.time()
     json_path = Path("./track.json")
@@ -38,7 +44,9 @@ def update_tracklist(
     new_scores: list[Score] = []
     banned_players: list[Union[User, int]] = []
 
-    track_file: list[dict[str, Union[str, int, dict[str, Union[str, int]]]]] = json.loads(json_path.read_bytes())
+    track_file: list[
+        dict[str, Union[str, int, dict[str, Union[str, int]]]]
+    ] = json.loads(json_path.read_bytes())
 
     new_stats = []
     for page in range(4):
@@ -48,15 +56,17 @@ def update_tracklist(
             scores = get_scores(api, place.user.id)
             country_rank = (idx + 1) + (50 * page)
 
-            new_stats.append({
-                "name": place.user.username,
-                "id": place.user.id,
-                "statistics": {
-                    "crank": country_rank,
-                    "grank": place.global_rank,
-                    "scores": [score.id for score in scores],
+            new_stats.append(
+                {
+                    "name": place.user.username,
+                    "id": place.user.id,
+                    "statistics": {
+                        "crank": country_rank,
+                        "grank": place.global_rank,
+                        "scores": [score.id for score in scores],
+                    },
                 },
-            })
+            )
 
             if place.user.username not in track_file:
                 old_player = find(
@@ -68,22 +78,17 @@ def update_tracklist(
                     (
                         api.user(place.user.id, GameMode.STD),
                         api.user(old_player["id"], GameMode.STD),
-                    )
+                    ),
                 )
             else:
-                old = find(
-                    lambda x: x["id"] == place.user.id,
-                    track_file,
-                )["statistics"]["scores"]
-                new = find(
-                    lambda x: x["id"] == place.user.id,
-                    new_stats,
-                )["statistics"]["scores"]
+                old = find(lambda x: x["id"] == place.user.id, track_file)[
+                    "statistics"
+                ]["scores"]
+                new = find(lambda x: x["id"] == place.user.id, new_stats)["statistics"][
+                    "scores"
+                ]
 
-                if dif_scores := list(
-                    set(new)
-                    ^ set(old)
-                ):
+                if dif_scores := list(set(new) ^ set(old)):
                     for score in dif_scores:
                         exact_score = find(lambda x: x.id == score, scores)
 
@@ -91,15 +96,17 @@ def update_tracklist(
                             new_scores.append(exact_score)
 
     if diff_users := list(
-        set([x["id"] for x in track_file])
-        - set([x["id"] for x in new_stats])
+        {x["id"] for x in track_file} - {x["id"] for x in new_stats},
     ):
         for user in diff_users:
             if user not in [x.id for _, x in new_players]:
                 user_api = api.user(user)
 
                 banned_players.append(user)
-                print(f"Banned player: {user} | osu!Api: {user_api.is_restricted}")
+                log(
+                    f"Banned player: {user} | osu!Api: {user_api.is_restricted}",
+                    Ansi.CYAN,
+                )
 
     json_path.unlink()
     json_path.write_text(json.dumps(new_stats, indent=2))
@@ -109,6 +116,6 @@ def update_tracklist(
     m, s = divmod(round(end), 60)
     h, m = divmod(m, 60)
 
-    print(f"Done, elapsed: {h:d}:{m:02d}:{s:02d}")
-    print(f"New Players: {len(new_players)}; New Scores: {len(new_scores)}")
+    log(f"Done, elapsed: {h:d}:{m:02d}:{s:02d}", Ansi.BLUE)
+    log(f"New Players: {len(new_players)}; New Scores: {len(new_scores)}", Ansi.YELLOW)
     return (new_players, new_scores, banned_players)
