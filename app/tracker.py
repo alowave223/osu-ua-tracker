@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __all__ = ("Tracker",)
 
+from app.version import Version
+
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -11,7 +13,6 @@ from discord import Embed
 import discord
 
 from ossapi import OssapiV2
-from cmyui import Version
 from discord.ext import commands, tasks
 from app.logging import Ansi, log
 from app.settings import Settings
