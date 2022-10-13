@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 
-__all__ = ("Version",)
+__all__ = ["Version"]
 
 
 @functools.total_ordering
