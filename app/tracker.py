@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from zoneinfo import ZoneInfo
 
-__all__ = ("Tracker",)
+__all__ = ["Tracker"]
 
 from app.version import Version
 
