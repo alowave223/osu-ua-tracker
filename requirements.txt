@@ -3,3 +3,4 @@ ossapi==2.4.1
 pydantic==1.10.2
 python-dotenv==0.21.0
 ratelimiter==1.2.0.post0
+tzdata==2022.4

@@ -27,9 +27,7 @@ def get_ranks(api: OssapiV2, page: int) -> Rankings:
 
 @RateLimiter(max_calls=250, period=60)
 def get_scores(api: OssapiV2, id: int) -> list[Score]:
-    scores = api.user_scores(id, ScoreType.BEST, mode=GameMode.STD, limit=50)
-
-    return scores
+    return api.user_scores(id, ScoreType.BEST, mode=GameMode.STD, limit=50)
 
 
 def update_tracklist(
